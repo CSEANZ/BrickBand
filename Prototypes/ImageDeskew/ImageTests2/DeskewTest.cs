@@ -60,13 +60,22 @@ namespace ImageTests
         [TestMethod]
         public async Task Test3()
         {
-            double cannyThreshold = 170;
-            double cannyThresholdLinking = 10;
+            double cannyThreshold = 80;
+            double cannyThresholdLinking = 80;
 
             var file = new FileInfo("TestSkew2.jpg");
+            
+            var img = System.Drawing.Image.FromFile(file.FullName);
+            var bitmap = new Bitmap(img);
+            //var smooth = AdaptiveThresholdSmoothFilter(bitmap, 20, 20, 0.1);
+
             Image<Gray, byte> image = new Image<Gray, byte>(file.FullName);
+
+            var imgSmooth = image.SmoothMedian(31);
+            imgSmooth.Bitmap.Save("Smooth.jpg", ImageFormat.Jpeg);
+
             UMat cannyEdges = new UMat();
-            CvInvoke.Canny(image, cannyEdges, cannyThreshold, cannyThresholdLinking);
+            CvInvoke.Canny(imgSmooth, cannyEdges, cannyThreshold, cannyThresholdLinking);
 
             var out2 = cannyEdges.Bitmap;
 
@@ -80,14 +89,85 @@ namespace ImageTests
                30, //min Line width
                10); //gap between lines
 
+            
+
             Mat lineImage = new Mat(image.Size, DepthType.Cv8U, 3);
             lineImage.SetTo(new MCvScalar(0));
             foreach (LineSegment2D line in lines)
-                CvInvoke.Line(lineImage, line.P1, line.P2, new Bgr(Color.Green).MCvScalar, 2);
+                CvInvoke.Line(lineImage, line.P1, line.P2, new Bgr(Color.GreenYellow).MCvScalar, 2);
+
+            var points = _findPoints(lines);
+
+            CvInvoke.Line(lineImage, new Point(points.Item1, 0), new Point(points.Item1, image.Size.Height), new Bgr(Color.DodgerBlue).MCvScalar, 2);
+            CvInvoke.Line(lineImage, new Point(points.Item2, 0), new Point(points.Item2, image.Size.Height), new Bgr(Color.DodgerBlue).MCvScalar, 2);
+            CvInvoke.Line(lineImage, new Point(0, points.Item3), new Point(image.Size.Width, points.Item3), new Bgr(Color.DodgerBlue).MCvScalar, 2);
+            CvInvoke.Line(lineImage, new Point(0, points.Item4), new Point(image.Size.Width, points.Item4), new Bgr(Color.DodgerBlue).MCvScalar, 2);
+            
 
             var bmp = lineImage.Bitmap;
 
             bmp.Save("output_Lines.jpg", ImageFormat.Jpeg);
+        }
+
+        (int, int, int, int) _findPoints(LineSegment2D[] lines)
+        {
+            int leftX = int.MaxValue;
+            int rightX = 0;
+            int topY = int.MaxValue;
+            int bottomY = 0;
+
+
+            //var lowerX = line.P1.X < line.P2.X ? line.P1 : line.P2;
+
+            //if (lowerX.X < leftX)
+            //{
+            //    leftX = lowerX.X;
+            //    leftPoint = lowerX;
+            //}
+
+
+            foreach (var line in lines)
+            {
+                var lowerX = _findLower(line.P1.X, line.P2.X);
+
+                if (lowerX < leftX)
+                {
+                    leftX = lowerX;
+                }
+
+                var upperX = _findUpper(line.P1.X, line.P2.X);
+
+                if (upperX > rightX)
+                {
+                    rightX = upperX;
+                }
+
+                var upperY = _findUpper(line.P1.Y, line.P2.Y);
+                //upper as in up the image, so lower value :/
+                if (upperY < topY)
+                {
+                    topY = upperY;
+                }
+
+                var lowerY = _findLower(line.P1.Y, line.P2.Y);
+
+                if (lowerY > bottomY)
+                {
+                    bottomY = lowerY;
+                }
+            }
+            return (leftX, rightX, topY, bottomY);
+
+        }
+
+        int _findUpper(int a, int b)
+        {
+            return a > b ? a : b;
+        }
+
+        int _findLower(int a, int b)
+        {
+            return a < b ? a : b;
         }
 
         [TestMethod]
@@ -102,7 +182,7 @@ namespace ImageTests
         public static Image<Gray, byte> Deskew(string file)
         {
             Image<Gray, byte> image = new Image<Gray, byte>(file);
-            image = image;
+            
             var bw = AdaptiveThresholdSmoothFilter(image.ToBitmap(), 20, 20, 0.03); //
             //CvInvoke.cvShowImage("", bw.Clone());
             LineSegment2D[] lines = bw.HoughLinesBinary(
