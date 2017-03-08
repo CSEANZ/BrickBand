@@ -7,6 +7,18 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Image HorizontalAlignment="Stretch" Name="frameHolder"  VerticalAlignment="Stretch"  Stretch="Fill"/>
+        <Image HorizontalAlignment="Stretch" Name="Canny"  VerticalAlignment="Stretch"  Stretch="Fill" Grid.Column="1"/>
+        <Image HorizontalAlignment="Stretch" Name="Lines"  VerticalAlignment="Stretch"  Stretch="Fill" Grid.Row="1"/>
+        <Image HorizontalAlignment="Stretch" Name="Finished"  VerticalAlignment="Stretch"  Stretch="Fill" Grid.Row="1" Grid.Column="1"/>
+        <Button Click="ButtonBase_OnClick" Content="SwitchCamera" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
     </Grid>
 </Window>

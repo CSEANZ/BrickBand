@@ -65,7 +65,7 @@ namespace ImageTests
             double cannyThreshold = 70;
             double cannyThresholdLinking = 70;
 
-            var file = new FileInfo("TestSkew2.jpg");
+            var file = new FileInfo("TestSkew.jpg");
 
             var img = System.Drawing.Image.FromFile(file.FullName);
             var bitmap = new Bitmap(img);
