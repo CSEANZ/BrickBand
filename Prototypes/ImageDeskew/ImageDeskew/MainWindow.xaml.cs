@@ -50,7 +50,7 @@ namespace ImageDeskew
         {
             while (true)
             {
-                await Task.Delay(50);
+                await Task.Delay(500);
                 if (_currentFrame == null)
                 {
                     continue;
@@ -61,7 +61,17 @@ namespace ImageDeskew
                     
                         var bm = BitmapImage2Bitmap(_currentFrame);
 
-                        var result = _deskewer.Deskew(bm, 70, 70);
+
+
+                        var result = _deskewer.Deskew(bm, 
+                            Convert.ToDouble(Threshold.Text), 
+                            Convert.ToDouble(ThresholdLinking.Text),
+                            Convert.ToInt32(OptSmooth.Text),
+                            Convert.ToDouble(OptDistanceRes.Text),
+                            Convert.ToInt32(OptLineThreshold.Text),
+                            Convert.ToDouble(OptAngleRes.Text),
+                            Convert.ToDouble(OptMinLineWidth.Text),
+                            Convert.ToDouble(OptLineGap.Text));
                     Dispatcher.Invoke(() =>
                     {
                         Canny.Source = Bitmap2BitmapImage(result.Item3);

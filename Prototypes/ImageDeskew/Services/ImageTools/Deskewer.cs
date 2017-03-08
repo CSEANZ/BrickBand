@@ -14,13 +14,20 @@ namespace Services
 {
     public class Deskewer
     {
-        public (Bitmap, Bitmap, Bitmap, Bitmap) Deskew(Bitmap source, double cannyThreshold, double cannyThresholdLinking)
+        public (Bitmap, Bitmap, Bitmap, Bitmap) Deskew(Bitmap source, double cannyThreshold, double cannyThresholdLinking,
+            int smooth = 31,
+            double distanceResolution = 1, 
+            int threshold = 20, 
+            double angleResolution = 45.0,
+            double minLineWidth = 30,
+            double lineGap = 10
+            )
         {
             var origImage = new Image<Bgr, byte>(source);
 
             Image<Gray, byte> image = new Image<Gray, byte>(source);
 
-            var imgSmooth = image.SmoothMedian(31);
+            var imgSmooth = image.SmoothMedian(smooth);
             
             //imgSmooth.Bitmap.Save("Smooth.jpg", ImageFormat.Jpeg);
 
@@ -31,11 +38,11 @@ namespace Services
 
             LineSegment2D[] lines = CvInvoke.HoughLinesP(
                cannyEdges,
-               1, //Distance resolution in pixel-related units
-               Math.PI / 45.0, //Angle resolution measured in radians.
-               20, //threshold
-               30, //min Line width
-               10); //gap between lines
+               distanceResolution, //Distance resolution in pixel-related units
+               Math.PI / angleResolution, //Angle resolution measured in radians.
+               threshold, //threshold
+               minLineWidth, //min Line width
+               lineGap); //gap between lines
 
 
 
@@ -104,14 +111,14 @@ namespace Services
             {
 
                 //find low x and low y
-                if (line.P1.X + line.P1.Y < lowXy - 5)
+                if (line.P1.X + line.P1.Y < lowXy)
                 {
                     lowXyLine = line;
                     lowXy = line.P1.X + line.P1.Y;
                     lowXy_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
-                if (line.P2.X + line.P2.Y < lowXy - 5)
+                if (line.P2.X + line.P2.Y < lowXy)
                 {
                     lowXyLine = line;
                     lowXy = line.P2.X + line.P2.Y;
