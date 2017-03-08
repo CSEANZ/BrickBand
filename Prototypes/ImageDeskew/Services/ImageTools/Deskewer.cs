@@ -95,6 +95,9 @@ namespace Services
 
             var imgSmooth = origImage.SmoothMedian(smooth);
 
+            
+
+            
 
             //UMat cleanedThreshold = new UMat();
             //CvInvoke.AdaptiveThreshold(image, cleanedThreshold, 255, Emgu.CV.CvEnum.AdaptiveThresholdType.MeanC,
@@ -133,12 +136,26 @@ namespace Services
             Mat cannyEdges = new Mat();
             CvInvoke.Canny(imgSmooth, cannyEdges, cannyThreshold, cannyThresholdLinking);
 
-
-
-            var kernel1 = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5, 5), new Point(-1, -1));
             Mat morphologyOut = new Mat();
-            CvInvoke.MorphologyEx(cannyEdges, morphologyOut, MorphOp.Close, kernel1, new Point(-1, -1), 1,
+
+            var kernel1 = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(3, 3), new Point(-1, -1));
+            var kernel2 = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(4, 4), new Point(-1, -1));
+
+            //CvInvoke.MorphologyEx(cannyEdges, morphologyOut, MorphOp.Open, kernel1, new Point(-1, -1), 1,
+            //    Emgu.CV.CvEnum.BorderType.Default, new MCvScalar());
+
+            CvInvoke.MorphologyEx(cannyEdges, morphologyOut, MorphOp.Close, kernel2, new Point(-1, -1), 1,
                 Emgu.CV.CvEnum.BorderType.Default, new MCvScalar());
+
+
+
+
+            //Mat kernelOp = CvInvoke.GetStructuringElement(ElementShape.Cross, new Size(5, 5), new Point(-1, -1));
+            //CvInvoke.MorphologyEx(cannyEdges, morphologyOut, MorphOp.Open, kernelOp, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+
+            //// Closing (dilate -> erode) para juntar regiones blancas.
+            //Mat kernelCl = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(8, 8), new Point(-1, -1));
+            //CvInvoke.MorphologyEx(morphologyOut, morphologyOut, MorphOp.Close, kernelCl, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
 
 
             //LineSegment2D[] lines = CvInvoke.HoughLinesP(

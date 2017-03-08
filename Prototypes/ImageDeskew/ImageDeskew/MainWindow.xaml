@@ -27,7 +27,7 @@
             <TextBox x:Name="ThresholdLinking" Text="70" Height="25" Width="50"/>
             
             <TextBlock Text="Smooth"></TextBlock>
-            <TextBox x:Name="OptSmooth" Text="31" Height="25" Width="50"/>
+            <TextBox x:Name="OptSmooth" Text="61" Height="25" Width="50"/>
 
             <TextBlock Text="DR"></TextBlock>
             <TextBox x:Name="OptDistanceRes" Text="1" Height="25" Width="50"/>

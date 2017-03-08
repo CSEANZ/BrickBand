@@ -24,10 +24,10 @@ namespace ImageTests
         public async Task ReadDeskew()
         {
             var ds = new Deskewer();
-            var f = new FileInfo("TestSkew2.jpg");
+            var f = new FileInfo("TestSkew3.jpg");
             var bm = new Image<Bgr, byte>(f.FullName);
 
-            var result = ds.Deskew(bm.Bitmap, 70, 70, 31, 1, 10, 45D, 30D, 10D, 10D);
+            var result = ds.Deskew(bm.Bitmap, 70, 70, 61, 1, 10, 45D, 30D, 10D, 10D);
 
             result.Item1.Save("Output_REal.jpg", ImageFormat.Jpeg);
             result.Item2.Save("Output_Smooth.jpg", ImageFormat.Jpeg);
