@@ -43,6 +43,9 @@
 
             <TextBlock Text="LG"></TextBlock>
             <TextBox x:Name="OptLineGap" Text="70" Height="25" Width="50"/>
+
+            <TextBlock Text="Hue"></TextBlock>
+            <TextBox x:Name="OptHue" Text="1" Height="25" Width="50"/>
         </StackPanel>
        
     </Grid>

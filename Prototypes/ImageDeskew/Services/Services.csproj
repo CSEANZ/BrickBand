@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IFileRepo.cs" />
+    <Compile Include="ImageTools\ColorTracker.cs" />
     <Compile Include="ImageTools\Deskewer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\FileRepo.cs" />

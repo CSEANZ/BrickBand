@@ -32,7 +32,7 @@ namespace ImageDeskew
         private VideoCaptureDevice _videoDevice;
         private VideoCapabilities[] _videoCapabilities;
 
-        private int _cameraIndex = 0;
+        private int _cameraIndex = 1;
 
         private BitmapImage _currentFrame = null;
 
@@ -51,6 +51,11 @@ namespace ImageDeskew
             while (true)
             {
                 await Task.Delay(500);
+
+                var d = Convert.ToDouble(OptHue.Text);
+
+                //OptHue.Text = (d + 2).ToString();
+
                 if (_currentFrame == null)
                 {
                     continue;
@@ -71,7 +76,8 @@ namespace ImageDeskew
                             Convert.ToInt32(OptLineThreshold.Text),
                             Convert.ToDouble(OptAngleRes.Text),
                             Convert.ToDouble(OptMinLineWidth.Text),
-                            Convert.ToDouble(OptLineGap.Text));
+                            Convert.ToDouble(OptLineGap.Text),
+                             Convert.ToDouble(OptHue.Text));
                     Dispatcher.Invoke(() =>
                     {
                         Canny.Source = Bitmap2BitmapImage(result.Item3);
@@ -158,7 +164,7 @@ namespace ImageDeskew
                 _cameraIndex = 0;
             }
 
-            var selDevice = _videoDevices[0];
+            var selDevice = _videoDevices[_cameraIndex];
 
             _videoDevice = new VideoCaptureDevice(selDevice.MonikerString);
 

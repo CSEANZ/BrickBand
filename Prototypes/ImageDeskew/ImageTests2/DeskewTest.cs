@@ -12,12 +12,31 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Features2D;
 using Emgu.CV.Structure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Services;
 
 namespace ImageTests
 {
     [TestClass]
     public class DeskewTest
     {
+
+        [TestMethod]
+        public async Task ReadDeskew()
+        {
+            var ds = new Deskewer();
+            var f = new FileInfo("TestSkew3.jpg");
+            var bm = new Image<Bgr, byte>(f.FullName);
+
+            var result = ds.Deskew(bm.Bitmap, 70, 70, 31, 1, 10, 45D, 30D, 10D, 10D);
+
+            result.Item1.Save("Output_REal.jpg", ImageFormat.Jpeg);
+            result.Item2.Save("Output_Smooth.jpg", ImageFormat.Jpeg);
+            result.Item3.Save("Output_Canny.jpg", ImageFormat.Jpeg);
+            result.Item4.Save("Output_Line.jpg", ImageFormat.Jpeg);
+            result.Item5.Save("Output_Thresh.jpg", ImageFormat.Jpeg);
+
+
+        }
 
         public async Task TestDeskew()
         {
@@ -65,7 +84,7 @@ namespace ImageTests
             double cannyThreshold = 70;
             double cannyThresholdLinking = 70;
 
-            var file = new FileInfo("TestSkew.jpg");
+            var file = new FileInfo("TestSkew2.jpg");
 
             var img = System.Drawing.Image.FromFile(file.FullName);
             var bitmap = new Bitmap(img);
@@ -167,6 +186,8 @@ namespace ImageTests
             var highXHighY_Line = default(LineSegment2D);
             var highXHighY_point = default(PointF);
 
+
+           
 
             foreach (var line in lines)
             {
