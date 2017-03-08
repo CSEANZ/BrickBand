@@ -189,7 +189,7 @@ namespace Services
 
 
             var pointsAll = new List<Point>();
-
+            
             for (var r = 0; r < morphologyOut.Rows; r+=2)
             {
                 for (var c = 0; c < morphologyOut.Cols; c+=2)
@@ -199,6 +199,7 @@ namespace Services
                     {
                         pointsAll.Add(new Point(c, r));
                         var two = val;
+                        
                     }
                 }
             }

@@ -80,7 +80,7 @@ namespace ImageDeskew
                              Convert.ToDouble(OptHue.Text));
                     Dispatcher.Invoke(() =>
                     {
-                        Canny.Source = Bitmap2BitmapImage(result.Item3);
+                        Canny.Source = Bitmap2BitmapImage(result.Item2);
                         Lines.Source = Bitmap2BitmapImage(result.Item4);
                         Finished.Source = Bitmap2BitmapImage(result.Item1);
                     });
