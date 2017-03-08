@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Features2D;
 using Emgu.CV.Structure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -101,12 +102,17 @@ namespace ImageTests
 
             foreach (var p in points)
             {
-                CvInvoke.Circle(lineImage, p.P1, 10, new Bgr(Color.DodgerBlue).MCvScalar, 2);
+                CvInvoke.Circle(lineImage, new Point((int)p.X, (int)p.Y), 10, new Bgr(Color.Red).MCvScalar, 2);
             }
 
+            var det = new GFTTDetector();
+            MKeyPoint[] featPoints = det.Detect(cannyEdges, null);
 
 
-
+            //foreach (var i in featPoints)
+            //{
+            //    CvInvoke.Circle(lineImage, new Point((int)i.Point.X, (int)i.Point.Y), 10, new Bgr(Color.Purple).MCvScalar, 2);
+            //}
 
             //CvInvoke.Line(lineImage, new Point(points.Item1, 0), new Point(points.Item1, image.Size.Height), new Bgr(Color.DodgerBlue).MCvScalar, 2);
             //CvInvoke.Line(lineImage, new Point(points.Item2, 0), new Point(points.Item2, image.Size.Height), new Bgr(Color.DodgerBlue).MCvScalar, 2);
@@ -119,26 +125,47 @@ namespace ImageTests
             bmp.Save("output_Lines.jpg", ImageFormat.Jpeg);
 
 
+            var sourcePoints = new PointF[]
+            {
+                new PointF(0, 0), new PointF(0, image.Height), new PointF(image.Width, 0),
+                new PointF(image.Width, image.Height)
+            };
+
+            var targetPoints = new PointF[] {points[0], points[1], points[2], points[3]};
+
+            var transform = CvInvoke.GetPerspectiveTransform(targetPoints, sourcePoints);
+
+            var outputImage = new Mat();
+
+            CvInvoke.WarpPerspective(image, outputImage, transform, image.Size);
+
+            outputImage.Bitmap.Save("Output_Transformed.jpg", ImageFormat.Jpeg);
+            
+
         }
 
-        List<LineSegment2D> _findPoints(LineSegment2D[] lines)
+        List<PointF> _findPoints(LineSegment2D[] lines)
         {
 
             var lowXy = int.MaxValue;
             var lowXyLine = default(LineSegment2D);
+            var lowXy_point = default(PointF);
 
            
             var lowXHighY_X = int.MaxValue;
             var lowXHighY_Y = 0;
             var lowXHighY_Line = default(LineSegment2D);
+            var lowXHighY_point = default(PointF);
 
             var highXLowY_X = 0;
             var highXLowY_Y = int.MaxValue;
             var highXLowY_Line = default(LineSegment2D);
+            var highXLowY_point = default(PointF);
 
             var highXHighY_X = 0;
             var highXHighY_Y = 0;
             var highXHighY_Line = default(LineSegment2D);
+            var highXHighY_point = default(PointF);
 
 
             foreach (var line in lines)
@@ -149,12 +176,14 @@ namespace ImageTests
                 {
                     lowXyLine = line;
                     lowXy = line.P1.X + line.P1.Y;
+                    lowXy_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P2.X + line.P2.Y < lowXy - 5)
                 {
                     lowXyLine = line;
                     lowXy = line.P2.X + line.P2.Y;
+                    lowXy_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 //find low x and High Y
@@ -163,6 +192,7 @@ namespace ImageTests
                     lowXHighY_X = line.P1.X;
                     lowXHighY_Y = line.P1.Y;
                     lowXHighY_Line = line;
+                    lowXHighY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P2.X < lowXHighY_X && line.P2.Y > lowXHighY_Y)
@@ -170,6 +200,7 @@ namespace ImageTests
                     lowXHighY_X = line.P2.X;
                     lowXHighY_Y = line.P2.Y;
                     lowXHighY_Line = line;
+                    lowXHighY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P1.X > highXLowY_X && line.P1.Y < highXLowY_Y)
@@ -177,6 +208,7 @@ namespace ImageTests
                     highXLowY_X = line.P1.X;
                     highXLowY_Y = line.P1.Y;
                     highXLowY_Line = line;
+                    highXLowY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P2.X > highXLowY_X && line.P2.Y < highXLowY_Y)
@@ -184,6 +216,7 @@ namespace ImageTests
                     highXLowY_X = line.P2.X;
                     highXLowY_Y = line.P2.Y;
                     highXLowY_Line = line;
+                    highXLowY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P1.X > highXHighY_X && line.P1.Y > highXHighY_Y)
@@ -191,6 +224,7 @@ namespace ImageTests
                     highXHighY_X = line.P1.X;
                     highXHighY_Y = line.P1.Y;
                     highXHighY_Line = line;
+                    highXHighY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
                 if (line.P2.X > highXHighY_X && line.P2.Y > highXHighY_Y)
@@ -198,57 +232,13 @@ namespace ImageTests
                     highXHighY_X = line.P2.X;
                     highXHighY_Y = line.P2.Y;
                     highXHighY_Line = line;
+                    highXHighY_point = new PointF(line.P1.X, line.P1.Y);
                 }
 
 
-                //find lines that start or end near the start or end of this line and that have a sufficiently differnt rotation. 
-
-
-
-                //foreach (var lineInner in lines)
-                //{
-                //    if (lineInner.P1 == line.P1 && lineInner.P2 == line.P2)
-                //    {
-                //        continue;
-                //    }
-
-                //    if (_isNear(line, lineInner))
-                //    {
-                //        corners.Add(line);
-                //    }
-
-                //}
-
-                //var lowerX = _findLower(line.P1.X, line.P2.X);
-
-                //if (lowerX < leftX)
-                //{
-                //    leftX = lowerX;
-                //}
-
-                //var upperX = _findUpper(line.P1.X, line.P2.X);
-
-                //if (upperX > rightX)
-                //{
-                //    rightX = upperX;
-                //}
-
-                //var upperY = _findUpper(line.P1.Y, line.P2.Y);
-                ////upper as in up the image, so lower value :/
-                //if (upperY < topY)
-                //{
-                //    topY = upperY;
-                //}
-
-                //var lowerY = _findLower(line.P1.Y, line.P2.Y);
-
-                //if (lowerY > bottomY)
-                //{
-                //    bottomY = lowerY;
-                //}
             }
 
-            return new List<LineSegment2D> { lowXyLine, lowXHighY_Line, highXLowY_Line, highXHighY_Line };
+            return new List<PointF> { lowXy_point, lowXHighY_point, highXLowY_point, highXHighY_point };
 
             //return corners;
 
