@@ -140,6 +140,37 @@ namespace Services
             CvInvoke.MorphologyEx(cannyEdges, morphologyOut, MorphOp.Close, kernel1, new Point(-1, -1), 1,
                 Emgu.CV.CvEnum.BorderType.Default, new MCvScalar());
 
+
+            //LineSegment2D[] lines = CvInvoke.HoughLinesP(
+            //  morphologyOut,
+            //  distanceResolution, //Distance resolution in pixel-related units
+            //  Math.PI / angleResolution, //Angle resolution measured in radians.
+            //  threshold, //threshold
+            //  minLineWidth, //min Line width
+            //  lineGap); //gap between lines
+
+            //double[] angle = new double[lines.Length];
+
+            //for (int i = 0; i < lines.Length; i++)
+            //{
+            //    var dangleInRadians = Math.Atan2(1, 1) - Math.Atan2(lines[i].Direction.X, lines[i].Direction.Y);
+            //    // double result = (double)(lines[i].P2.Y - lines[i].P1.Y) / (lines[i].P2.X - lines[i].P1.X);
+            //    angle[i] = dangleInRadians;
+            //}
+            //double avg = 0;
+            //for (int i = 0; i < lines.Length; i++)
+            //{
+            //    avg += angle[i];
+            //}
+            //avg = avg / lines.Length;
+            //Gray g = new Gray(255);
+            //Image<Gray, byte> imageRotate = image.Rotate(-avg, g);
+
+
+
+
+
+
             var pointsAll = new List<Point>();
 
             for (var r = 0; r < morphologyOut.Rows; r+=2)
@@ -156,14 +187,7 @@ namespace Services
             }
             //out2.Save("output_Canny.jpg", ImageFormat.Jpeg);
 
-            //LineSegment2D[] lines = CvInvoke.HoughLinesP(
-            //   morphologyOut,
-            //   distanceResolution, //Distance resolution in pixel-related units
-            //   Math.PI / angleResolution, //Angle resolution measured in radians.
-            //   threshold, //threshold
-            //   minLineWidth, //min Line width
-            //   lineGap); //gap between lines
-
+           
 
             Mat lineImage = new Mat(image.Size, DepthType.Cv8U, 3);
             //Mat lineImage = new Mat(image.Size, DepthType.Cv8U, 3);
@@ -172,7 +196,7 @@ namespace Services
             //    CvInvoke.Line(lineImage, line.P1, line.P2, _randColor(), 2);
 
             //var points = _findPoints(lines);
-            var points2 = _findPointsFromXY(pointsAll);
+            var points2 = _findPointsFromXY(pointsAll, image.Width, image.Height);
 
             //new Bgr(Color.Red).MCvScalar
             foreach (var p in points2)
@@ -218,62 +242,91 @@ namespace Services
         }
 
 
-        List<PointF> _findPointsFromXY(List<Point> points)
+        List<Point> _findPointsFromXY(List<Point> points, int width, int height)
         {
+            var topLeft = new Point(0, 0);
+            var bottomLeft = new Point(0, height);
+            var topRight = new Point(width, 0);
+            var bottomRight = new Point(width, height);
 
-            var lowXy = int.MaxValue;
-            
-            var lowXy_point = default(Point);
+            double bestDistanceTopLeft = Double.MaxValue;
+            double bestDistanceBottomLeft = Double.MaxValue;
+            double bestDistanceTopRight = Double.MaxValue;
+            double bestDistanceBottomRight = Double.MaxValue;
 
+            Point bestTopLeft = default(Point);
+            Point bestBottomLeft = default(Point);
+            Point bestTopRight = default(Point);
+            Point bestBottomRight = default(Point);
 
-            var lowXHighY_X = int.MaxValue;
-            var lowXHighY_Y = 0;
-            
-            var lowXHighY_point = default(Point);
-
-            var highXLowY_X = 0;
-            var highXLowY_Y = int.MaxValue;
-            
-            var highXLowY_point = default(Point);
-
-            var highXHighY_X = 0;
-            var highXHighY_Y = 0;
-           
-            var highXHighY_point = default(Point);
-            
             foreach (var point in points)
             {
-                //find low x and low y
-                if (point.X + point.Y < lowXy)
+                var distanceTopLeft = Math.Sqrt((Math.Pow(point.X - topLeft.X, 2) + Math.Pow(point.Y - topLeft.Y, 2)));
+                var distanceBottomLeft = Math.Sqrt((Math.Pow(point.X - bottomLeft.X, 2) + Math.Pow(point.Y - bottomLeft.Y, 2)));
+                var distanceTopRight = Math.Sqrt((Math.Pow(point.X - topRight.X, 2) + Math.Pow(point.Y - topRight.Y, 2)));
+                var distanceBottomRight = Math.Sqrt((Math.Pow(point.X - bottomRight.X, 2) + Math.Pow(point.Y - bottomRight.Y, 2)));
+
+
+                if (distanceTopLeft < bestDistanceTopLeft)
                 {
-                    lowXy = point.X + point.Y;
-                    lowXy_point = point;
+                    bestDistanceTopLeft = distanceTopLeft;
+                    bestTopLeft = point;
                 }
 
-                if (point.X < lowXHighY_X && point.Y > lowXHighY_Y)
+                if (distanceBottomLeft < bestDistanceBottomLeft)
                 {
-                    lowXHighY_X = point.X;
-                    lowXHighY_Y = point.Y;
-
-                    lowXHighY_point = point;
-                }
-            
-                if (point.X > highXLowY_X-10 && point.Y < highXLowY_Y)
-                {
-                    highXLowY_X = point.X;
-                    highXLowY_Y = point.Y;
-
-                    highXLowY_point = point;
+                    bestDistanceBottomLeft = distanceBottomLeft;
+                    bestBottomLeft = point;
                 }
 
-                if (point.X > highXHighY_X && point.Y > highXHighY_Y)
+                if (distanceTopRight < bestDistanceTopRight)
                 {
-                    highXHighY_X = point.X;
-                    highXHighY_Y = point.Y;
-
-                    highXHighY_point = point;
+                    bestDistanceTopRight = distanceTopRight;
+                    bestTopRight = point;
                 }
+
+                if (distanceBottomRight < bestDistanceBottomRight)
+                {
+                    bestDistanceBottomRight = distanceBottomRight;
+                    bestBottomRight = point;
+                }
+
+                //double distanceSquared = (point - topLeft).LengthSquared;
+                ////double distanceTopLeft = Point.Subtract(point, topLeft).Length;
+
+                ////find low x and low y
+                //if (point.X + point.Y < lowXy)
+                //{
+                //    lowXy = point.X + point.Y;
+                //    lowXy_point = point;
+                //}
+
+                //if (point.X < lowXHighY_X && point.Y > lowXHighY_Y)
+                //{
+                //    lowXHighY_X = point.X;
+                //    lowXHighY_Y = point.Y;
+
+                //    lowXHighY_point = point;
+                //}
+
+                //if (point.X > highXLowY_X-10 && point.Y < highXLowY_Y)
+                //{
+                //    highXLowY_X = point.X;
+                //    highXLowY_Y = point.Y;
+
+                //    highXLowY_point = point;
+                //}
+
+                //if (point.X > highXHighY_X && point.Y > highXHighY_Y)
+                //{
+                //    highXHighY_X = point.X;
+                //    highXHighY_Y = point.Y;
+
+                //    highXHighY_point = point;
+                //}
             }
+
+            return new List<Point> { bestTopLeft, bestBottomLeft, bestTopRight, bestBottomRight };
             //if (point.X > highXLowY_X && point.Y < highXLowY_Y)
             //{
             //    highXLowY_X = point.X;
@@ -305,7 +358,7 @@ namespace Services
             //}
 
 
-            return new List<PointF> { lowXy_point, lowXHighY_point, highXLowY_point, highXHighY_point };
+            //return new List<PointF> { lowXy_point, lowXHighY_point, highXLowY_point, highXHighY_point };
 
             //return corners;
 

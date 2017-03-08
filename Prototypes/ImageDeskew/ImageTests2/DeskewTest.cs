@@ -24,7 +24,7 @@ namespace ImageTests
         public async Task ReadDeskew()
         {
             var ds = new Deskewer();
-            var f = new FileInfo("TestSkew3.jpg");
+            var f = new FileInfo("TestSkew2.jpg");
             var bm = new Image<Bgr, byte>(f.FullName);
 
             var result = ds.Deskew(bm.Bitmap, 70, 70, 31, 1, 10, 45D, 30D, 10D, 10D);
