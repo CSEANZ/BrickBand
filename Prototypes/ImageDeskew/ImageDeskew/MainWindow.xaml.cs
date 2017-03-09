@@ -19,6 +19,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using ExtensionGoo.Standard.Extensions;
+using Newtonsoft.Json;
 using Services;
 using Services.Entity;
 using Services.ImageTools;
@@ -53,7 +55,10 @@ namespace ImageDeskew
 
         }
 
-        void _runScan()
+        private string _funcUrl =
+            "https://musicmaker.azurewebsites.net/api/MusicIn?code=Fa11szPiazzsgNFmKEXXoNuoa5yTZsGaUIahV1zyiDDwhOoDpGeh4g==";
+
+        async void _runScan()
         {
             var d = Convert.ToDouble(OptHue.Text);
 
@@ -120,6 +125,14 @@ namespace ImageDeskew
                         {
                             return;
                         }
+
+                        var me = new MusicEntry
+                        {
+                            SerialisedData = JsonConvert.SerializeObject(resultCompare)
+                        };
+
+                        var sendResult = await _funcUrl.Post(JsonConvert.SerializeObject(me));
+
                         Canny.Source = Bitmap2BitmapImage(resultImage);
                     }
 

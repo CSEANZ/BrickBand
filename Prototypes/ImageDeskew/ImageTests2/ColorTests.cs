@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Services.Entity;
 using Services.ImageTools;
 
 namespace ImageTests2
@@ -31,6 +33,13 @@ namespace ImageTests2
 
             var colourRun = c.FindColors(bm2.Bitmap, false, 16);
 
+            var json = JsonConvert.SerializeObject(colourRun);
+
+            var music = new MusicEntry {SerialisedData = json};
+
+            var jsonMusic = JsonConvert.SerializeObject(music);
+
+            File.WriteAllText("colourRun.json", jsonMusic);
 
             var result = c.CompareColours(colourCalibration, colourRun);
 
