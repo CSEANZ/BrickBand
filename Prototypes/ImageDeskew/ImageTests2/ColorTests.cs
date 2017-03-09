@@ -22,7 +22,18 @@ namespace ImageTests2
             var f = new FileInfo("sequence.jpg");
             var bm = new Image<Bgr, byte>(f.FullName);
 
-            c.FindColors(bm.Bitmap);
+            var colourCalibration = c.FindColors(bm.Bitmap);
+
+
+            var f2 = new FileInfo("test_sequence.jpg");
+            var bm2 = new Image<Bgr, byte>(f2.FullName);
+
+            var colourRun = c.FindColors(bm2.Bitmap);
+
+
+            var result = c.CompareColours(colourCalibration, colourRun);
+
+
         }
     }
 }

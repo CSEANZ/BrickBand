@@ -3,18 +3,43 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Newtonsoft.Json;
+using Services.Entity;
 
 namespace Services.ImageTools
 {
     public class ColourFinder
     {
-        public void FindColors(Bitmap bm)
+        public List<ColourZone> CompareColours(List<ColourZone> calibration, List<ColourZone> compare)
+        {
+            var lActuals = new List<ColourZone>();
+            foreach (var compCol in compare)
+            {
+                ColourZone currentColorZone = null;
+
+                foreach (var calCol in calibration)
+                {
+                    if (compCol.Average >= calCol.Average - 5 && compCol.Average <= calCol.Average + 5)
+                    {
+                        currentColorZone = calCol;
+                    }
+                }
+
+                lActuals.Add(currentColorZone ?? new ColourZone());
+            }
+
+            return lActuals;
+        }
+
+
+        public List<ColourZone> FindColors(Bitmap bm)
         {
             var origImage = new Image<Bgr, byte>(bm);
 
@@ -85,12 +110,48 @@ namespace Services.ImageTools
                 CvInvoke.Circle(lineImage, new Point(pixelOffset, origImage.Height/2), 20, thisColData.Item5.MCvScalar, 2);
             }
 
+            var listOfColumns = new List<ColourZone>();
+
+            foreach (var item in colAverage)
+            {
+                //thanks to https://medium.com/@kevinsimper/how-to-average-rgb-colors-together-6cd3ef1ff1e5#.3b9ktir0a for the colour average code!
+
+                var cz = new ColourZone
+                {
+                    Column = item.Key,
+                    B = Convert.ToByte(item.Value.Item5.Blue),
+                    G = Convert.ToByte(item.Value.Item5.Green),
+                    R = Convert.ToByte(item.Value.Item5.Red)
+                };
+
+                var averageB = cz.B * cz.B;
+                var averageG = cz.G * cz.G;
+                var averageR = cz.R * cz.R;
+
+                var avgTotal = averageB + averageG + averageR;
+
+                var div2 = avgTotal / 2;
+
+                var averageColor = Convert.ToInt32(Math.Sqrt(div2));
+
+                cz.Average = averageColor;
+
+                listOfColumns.Add(cz);
+                
+            }
+
+            var json = JsonConvert.SerializeObject(listOfColumns);
+
+            File.WriteAllText("calibration.json", json);
+
             //foreach (var p in byteList)
             //{
             //    CvInvoke.Circle(lineImage, new Point(p.Item2, p.Item1), 2, p.Item3.MCvScalar, 2);
             //}
 
             lineImage.Bitmap.Save("Output_ColorTester.jpg", ImageFormat.Jpeg);
+
+            return listOfColumns;
 
         }
     }
