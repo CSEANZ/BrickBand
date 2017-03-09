@@ -17,6 +17,23 @@ namespace Services.ImageTools
 {
     public class ColourFinder
     {
+        public Bitmap VisualiseZones(List<ColourZone> zones)
+        {
+            Mat lineImage = new Mat(new Size(1024, 400), DepthType.Cv8U, 3);
+
+            var pixPerCol = lineImage.Width / zones.Count;
+
+            for(var z = 0; z < zones.Count; z++)
+            {
+                var zone = zones[z];
+                var pixelOffset = ((z + 1) * pixPerCol) / 2;
+                CvInvoke.Circle(lineImage, new Point(pixelOffset, lineImage.Height / 2), 10, new Bgr(zone.B, zone.G, zone.R).MCvScalar, 2);
+            }
+
+            return lineImage.Bitmap;
+        }
+
+
         public List<ColourZone> CompareColours(List<ColourZone> calibration, List<ColourZone> compare)
         {
             var lActuals = new List<ColourZone>();
@@ -39,7 +56,7 @@ namespace Services.ImageTools
         }
 
 
-        public List<ColourZone> FindColors(Bitmap bm)
+        public List<ColourZone> FindColors(Bitmap bm, int columns = 17)
         {
             var origImage = new Image<Bgr, byte>(bm);
 
@@ -48,11 +65,9 @@ namespace Services.ImageTools
             Image<Hsv, Byte> hsvimg = imgSmooth.Convert<Hsv, Byte>();
 
             var byteList = new List<Tuple<int, int, Bgr>>();
+           
 
-
-            int colums = 16;
-
-            var pixPerCol = (hsvimg.Cols / 16);
+            var pixPerCol = (hsvimg.Cols / columns);
 
             var colAverage = new Dictionary<int, Tuple<int, int, int, int, Bgr>>(); //count, totalb, totalg, totalr, pixelaverage
 
@@ -66,6 +81,14 @@ namespace Services.ImageTools
                     
 
                     var thisCol = (int)(c / pixPerCol);
+
+                    var upper = (thisCol + 1) * pixPerCol;
+                    var lower = thisCol * pixPerCol;
+
+                    if (c < lower + 10 || c > upper - 10)
+                    {
+                        continue;
+                    }
 
                     if (!colAverage.ContainsKey(thisCol))
                     {
@@ -101,7 +124,7 @@ namespace Services.ImageTools
 
             Mat lineImage = new Mat(origImage.Size, DepthType.Cv8U, 3);
 
-            for (var c = 0; c < 16; c++)
+            for (var c = 0; c < columns; c++)
             {
                 var thisColData = colAverage[c];
 
