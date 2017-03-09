@@ -21,6 +21,7 @@
         <Image HorizontalAlignment="Stretch" Name="Finished"  VerticalAlignment="Stretch"  Stretch="Fill" Grid.Row="1" Grid.Column="1"/>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <Button Click="ButtonBase_OnClick" Content="SwitchCamera" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
+            <Button Click="CalibrateButton_OnClick" x:Name="CalibrateButton" Content="Calibrate" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
             <TextBlock Text="Thresh"></TextBlock>
             <TextBox x:Name="Threshold" Text="70" Height="25" Width="50"/>
             <TextBlock Text="Thresh Link"></TextBlock>

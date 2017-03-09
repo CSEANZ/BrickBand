@@ -20,6 +20,8 @@ using System.Windows.Shapes;
 using AForge.Video;
 using AForge.Video.DirectShow;
 using Services;
+using Services.Entity;
+using Services.ImageTools;
 
 namespace ImageDeskew
 {
@@ -37,66 +39,116 @@ namespace ImageDeskew
         private BitmapImage _currentFrame = null;
 
         private Deskewer _deskewer = new Deskewer();
+        ColourFinder _finder = new ColourFinder();
+
+        private ColourBoardProfile _current;
+        private ColourBoardProfile _calibration;
 
         public MainWindow()
         {
             InitializeComponent();
             this.Loaded += MainWindow_Loaded;
             this.Unloaded += MainWindow_Unloaded;
+           
 
         }
 
-        async void _timer()
+        void _runScan()
         {
-            while (true)
+            var d = Convert.ToDouble(OptHue.Text);
+
+            //OptHue.Text = (d + 2).ToString();
+
+            if (_currentFrame == null)
             {
-                await Task.Delay(500);
+                return;
+            }
 
-                var d = Convert.ToDouble(OptHue.Text);
+            try
+            {
 
-                //OptHue.Text = (d + 2).ToString();
+                var bm = BitmapImage2Bitmap(_currentFrame);
 
-                if (_currentFrame == null)
-                {
-                    continue;
-                }
+
+
+                var result = _deskewer.Deskew(bm,
+                    Convert.ToDouble(Threshold.Text),
+                    Convert.ToDouble(ThresholdLinking.Text),
+                    Convert.ToInt32(OptSmooth.Text),
+                    Convert.ToDouble(OptDistanceRes.Text),
+                    Convert.ToInt32(OptLineThreshold.Text),
+                    Convert.ToDouble(OptAngleRes.Text),
+                    Convert.ToDouble(OptMinLineWidth.Text),
+                    Convert.ToDouble(OptLineGap.Text),
+                     Convert.ToDouble(OptHue.Text));
+
 
                 try
                 {
-                    
-                        var bm = BitmapImage2Bitmap(_currentFrame);
+                    Lines.Source = Bitmap2BitmapImage(result.Item4);
+                    Finished.Source = Bitmap2BitmapImage(result.Item1);
 
-
-
-                        var result = _deskewer.Deskew(bm, 
-                            Convert.ToDouble(Threshold.Text), 
-                            Convert.ToDouble(ThresholdLinking.Text),
-                            Convert.ToInt32(OptSmooth.Text),
-                            Convert.ToDouble(OptDistanceRes.Text),
-                            Convert.ToInt32(OptLineThreshold.Text),
-                            Convert.ToDouble(OptAngleRes.Text),
-                            Convert.ToDouble(OptMinLineWidth.Text),
-                            Convert.ToDouble(OptLineGap.Text),
-                             Convert.ToDouble(OptHue.Text));
-                    Dispatcher.Invoke(() =>
+                    if (result.Item1 == null)
                     {
-                        Canny.Source = Bitmap2BitmapImage(result.Item2);
-                        Lines.Source = Bitmap2BitmapImage(result.Item4);
-                        Finished.Source = Bitmap2BitmapImage(result.Item1);
-                    });
+                        return;
+                    }
+
+                    if (_calibration == null)
+                    {
+                        var findResult = _finder.FindColors(result.Item1, true, 17);
+
+                        _current = findResult;
+                        var resultImage = _finder.VisualiseZones(findResult);
+
+                        if (resultImage == null)
+                        {
+                            return;
+                        }
+
+                        Canny.Source = Bitmap2BitmapImage(resultImage);
+                    }
+                    else
+                    {
+                        var findResult = _finder.FindColors(result.Item1, true, 16);
+                        var resultCompare = _finder.CompareColours(_calibration, findResult);
+                        if (resultCompare == null)
+                        {
+                            return;
+                        }
+                        var resultImage = _finder.VisualiseZones(resultCompare);
+                        if (resultImage == null)
+                        {
+                            return;
+                        }
+                        Canny.Source = Bitmap2BitmapImage(resultImage);
+                    }
 
                 }
-                catch (Exception ex)
-                {
-                    
-                }
+                catch { }
+
+
+
+
             }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        void _timer(object o)
+        {
+            Dispatcher.Invoke(_runScan);
         }
 
         //Thanks http://www.shujaat.net/2010/08/wpf-images-from-project-resource.html!
 
         private BitmapImage Bitmap2BitmapImage(Bitmap bitmapInput)
         {
+            if (bitmapInput == null)
+            {
+                return null;
+            }
             var bitmap = new System.Windows.Media.Imaging.BitmapImage();
             bitmap.BeginInit();
             var memoryStream = new MemoryStream();
@@ -137,7 +189,6 @@ namespace ImageDeskew
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _init();
-            _timer();
         }
 
         void _switchCamera()
@@ -147,7 +198,7 @@ namespace ImageDeskew
                 _videoDevice?.Stop();
                 _videoDevice.NewFrame -= _videoDevice_NewFrame;
             }
-           
+
             _cameraIndex += 1;
 
             _init();
@@ -155,7 +206,7 @@ namespace ImageDeskew
 
         async void _init()
         {
-            await Task.Delay(1000);
+            await Task.Delay(250);
 
             _videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
@@ -175,6 +226,9 @@ namespace ImageDeskew
             _videoDevice.VideoResolution = caps[caps.Length - 1];
 
             _videoDevice.Start();
+
+            var t = new System.Threading.Timer(_timer);
+            t.Change(0, 1000);
         }
 
         private void _videoDevice_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -203,10 +257,23 @@ namespace ImageDeskew
                 //catch your error here
             }
         }
-       
+
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             _switchCamera();
+        }
+
+        private void CalibrateButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (_calibration != null)
+            {
+                _calibration = null;
+                return;
+            }
+            if (_current != null)
+            {
+                _calibration = _current;
+            }
         }
     }
 }

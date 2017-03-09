@@ -19,7 +19,22 @@ namespace Services.ImageTools
     {
         public Bitmap VisualiseZones(ColourBoardProfile zones)
         {
+            if (zones?.Zones == null)
+            {
+                return null;
+            }
+
+            if (zones.Zones.Count == 0)
+            {
+                return null;
+            }
+
             Mat lineImage = new Mat(new Size(1024, 400), DepthType.Cv8U, 3);
+
+            if (zones?.Zones == null)
+            {
+                return lineImage.Bitmap;
+            }
 
             var pixPerCol = lineImage.Width / zones.Zones.Count;
 
@@ -47,6 +62,11 @@ namespace Services.ImageTools
 
         public ColourBoardProfile CompareColours(ColourBoardProfile calibration, ColourBoardProfile compare)
         {
+            if (compare?.Zones == null)
+            {
+                return null;
+            }
+
             var lActuals = new List<ColourZone>();
             foreach (var compCol in compare.Zones)
             {
@@ -82,7 +102,25 @@ namespace Services.ImageTools
 
         public ColourBoardProfile FindColors(Bitmap bm, bool calibration, int columns = 17)
         {
-            var origImage = new Image<Bgr, byte>(bm);
+            Image<Bgr, byte> origImage = null;
+
+            var tmp = Path.GetTempFileName();
+
+            try
+            {
+                bm.Save(tmp, ImageFormat.Bmp);
+                origImage = new Image<Bgr, byte>(tmp);
+                File.Delete(tmp);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                File.Delete(tmp);
+            }
+            
 
             var imgSmooth = origImage.SmoothMedian(41);
 
@@ -100,6 +138,13 @@ namespace Services.ImageTools
                 for (var c = 0; c < hsvimg.Cols; c += 1)
                 {
                     var pixel = origImage[r, c];
+
+                    if (colAverage.Count == 0 && pixel.Blue > 250 && pixel.Green > 250 && pixel.Red > 250)
+                    {
+                        continue;
+                    }
+
+
                     byteList.Add(new Tuple<int, int, Bgr>(r, c, pixel));
 
 
