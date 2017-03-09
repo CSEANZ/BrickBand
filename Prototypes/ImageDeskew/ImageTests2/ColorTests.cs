@@ -23,13 +23,13 @@ namespace ImageTests2
             var f = new FileInfo("calibration_sheet.JPG");
             var bm = new Image<Bgr, byte>(f.FullName);
 
-            var colourCalibration = c.FindColors(bm.Bitmap, 17);
+            var colourCalibration = c.FindColors(bm.Bitmap, true, 17);
 
 
             var f2 = new FileInfo("test_sequence.jpg");
             var bm2 = new Image<Bgr, byte>(f2.FullName);
 
-            var colourRun = c.FindColors(bm2.Bitmap, 16);
+            var colourRun = c.FindColors(bm2.Bitmap, false, 16);
 
 
             var result = c.CompareColours(colourCalibration, colourRun);

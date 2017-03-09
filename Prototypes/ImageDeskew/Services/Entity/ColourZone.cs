@@ -13,5 +13,6 @@ namespace Services.Entity
         public byte G { get; set; }
         public byte R { get; set; }
         public int Average { get; set; }
+        public bool IsBase { get; set; }
     }
 }

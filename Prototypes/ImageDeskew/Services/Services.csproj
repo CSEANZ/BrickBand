@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IFileRepo.cs" />
+    <Compile Include="Entity\ColourBoardProfile.cs" />
     <Compile Include="Entity\ColourZone.cs" />
     <Compile Include="ImageTools\ColourFinder.cs" />
     <Compile Include="ImageTools\Deskewer.cs" />
