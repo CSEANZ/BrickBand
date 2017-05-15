@@ -33,5 +33,10 @@ namespace BrickBand.UWP
         {
             this.Frame.Navigate(typeof(CameraCalibrationView));
         }
+
+        public async void ShowGame()
+        {
+            this.Frame.Navigate(typeof(GameVIew));
+        }
     }
 }

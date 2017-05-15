@@ -1,4 +1,4 @@
-﻿<base:ViewModelPageBase
+﻿<base:CameraPageBase
     x:Class="BrickBand.UWP.View.CameraCalibrationView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -12,5 +12,5 @@
         <CaptureElement Name="PreviewControl" Stretch="Uniform"/>
         <ComboBox ItemsSource="{x:Bind Devices}" SelectedIndex="{x:Bind SelectedDeviceIndex, Mode=TwoWay}"></ComboBox>
     </Grid>
-</base:ViewModelPageBase>
+</base:CameraPageBase>
 
