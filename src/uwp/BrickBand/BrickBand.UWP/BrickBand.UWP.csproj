@@ -99,7 +99,11 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Model\Contract\ISettingsService.cs" />
+    <Compile Include="Model\Services\SettingsService.cs" />
+    <Compile Include="View\Base\ViewModelPageBase.cs" />
     <Compile Include="View\CameraCalibrationView.xaml.cs">
       <DependentUpon>CameraCalibrationView.xaml</DependentUpon>
     </Compile>

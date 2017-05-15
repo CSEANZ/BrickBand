@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using BrickBand.UWP.Glue;
 
 namespace BrickBand.UWP
 {
@@ -22,6 +23,7 @@ namespace BrickBand.UWP
     /// </summary>
     sealed partial class App : Application
     {
+        public static ProjectGlue Glue { get; set; }
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -39,6 +41,9 @@ namespace BrickBand.UWP
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            Glue = new ProjectGlue();
+            Glue.Init();
+
             Frame rootFrame = Window.Current.Content as Frame;
 
             // Do not repeat app initialization when the Window already has content,

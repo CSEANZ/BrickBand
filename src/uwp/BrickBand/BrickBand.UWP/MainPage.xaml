@@ -8,6 +8,6 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Button Click="{x:Bind ShowCalibration}"/>
+        <Button Click="{x:Bind ShowCalibration}" Content="Calibrate"/>
     </Grid>
 </Page>
