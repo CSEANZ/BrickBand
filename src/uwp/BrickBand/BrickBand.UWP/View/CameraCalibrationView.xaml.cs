@@ -8,7 +8,11 @@ using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
+using Windows.Graphics.Imaging;
 using Windows.Media.Capture;
+using Windows.Media.MediaProperties;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.System.Display;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -38,6 +42,52 @@ namespace BrickBand.UWP.View
             this.InitializeComponent();
             Application.Current.Suspending += Application_Suspending;
             this.Loaded += CameraCalibrationView_Loaded;
+            this.Tapped += CameraCalibrationView_Tapped;
+        }
+
+        private void CameraCalibrationView_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            _capture();
+        }
+
+        private async void _capture()
+        {
+            using (var stream = new InMemoryRandomAccessStream())
+            {
+                var properties = ImageEncodingProperties.CreateJpeg();
+                await _mediaCapture.CapturePhotoToStreamAsync(properties, stream);
+                var decoder = await BitmapDecoder.CreateAsync(stream);
+                var sfbmp = await decoder.GetSoftwareBitmapAsync();
+            }
+
+            var picturesLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Pictures);
+            // Fall back to the local app storage if the Pictures Library is not available
+            var _captureFolder = picturesLibrary.SaveFolder ?? ApplicationData.Current.LocalFolder;
+
+            //var stream2 = new InMemoryRandomAccessStream();
+
+            try
+            {
+                // Take and save the photo
+                var file = await _captureFolder.CreateFileAsync("SimplePhoto.jpg", CreationCollisionOption.GenerateUniqueName);
+                await _mediaCapture.CapturePhotoToStorageFileAsync(ImageEncodingProperties.CreateJpeg(), file);
+                //rootPage.NotifyUser("Photo taken, saved to: " + file.Path, NotifyType.StatusMessage);
+            }
+            catch (Exception ex)
+            {
+                // File I/O errors are reported as exceptions.
+                //rootPage.NotifyUser("Exception when taking a photo: " + ex.Message, NotifyType.ErrorMessage);
+            }
+
+
+
+            //// Prepare and capture photo
+            //var lowLagCapture = await _mediaCapture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Nv12));
+
+            //var capturedPhoto = await lowLagCapture.CaptureAsync();
+            //var softwareBitmap = capturedPhoto.Frame.SoftwareBitmap;
+
+            //await lowLagCapture.FinishAsync();
         }
 
         private async void CameraCalibrationView_Loaded(object sender, RoutedEventArgs e)
@@ -62,8 +112,20 @@ namespace BrickBand.UWP.View
             {
 
                 _mediaCapture = new MediaCapture();
-                await _mediaCapture.InitializeAsync();
-                
+                await _mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+                {
+                    StreamingCaptureMode = StreamingCaptureMode.Video,
+                    PhotoCaptureSource = PhotoCaptureSource.VideoPreview
+                });
+
+
+               
+
+                var maxResolution = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo).Aggregate((i1, i2) => (i1 as VideoEncodingProperties).Width > (i2 as VideoEncodingProperties).Width ? i1 : i2);
+               
+                await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, maxResolution);
+               
+
 
                 _displayRequest.RequestActive();
                 DisplayInformation.AutoRotationPreferences = DisplayOrientations.Landscape;
