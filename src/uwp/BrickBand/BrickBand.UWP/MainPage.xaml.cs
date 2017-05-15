@@ -12,6 +12,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using BrickBand.UWP.View;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -25,6 +26,12 @@ namespace BrickBand.UWP
         public MainPage()
         {
             this.InitializeComponent();
+            
+        }
+
+        public async void ShowCalibration()
+        {
+            this.Frame.Navigate(typeof(CameraCalibrationView));
         }
     }
 }
