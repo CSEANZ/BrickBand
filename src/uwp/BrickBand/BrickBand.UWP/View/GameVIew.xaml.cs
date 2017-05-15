@@ -39,6 +39,11 @@ namespace BrickBand.UWP.View
 
         private async void _timer_Tick(object sender, object e)
         {
+            _doCap();
+        }
+
+        async void _doCap()
+        {
             var swBitmap = await Capture();
         }
 
